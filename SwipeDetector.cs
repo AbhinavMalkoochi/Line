@@ -1,3 +1,5 @@
+//minimum of 15 degree separation between line and previous line
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -35,6 +37,8 @@ public class SwipeDetector : MonoBehaviour
 
 		playerWidth = sRenderer.sprite.bounds.size.x * transform.lossyScale.x;
         playerHeight= sRenderer.sprite.bounds.size.y * transform.lossyScale.y;
+		xPos= gameObject.transform.position.x;
+		yPos= gameObject.transform.position.y;
 
 	}
     void Update()
@@ -66,13 +70,21 @@ public class SwipeDetector : MonoBehaviour
 				float yDifference =  endTouchPosition.y-startTouchPosition.y;
 				float xDifference = endTouchPosition.x-startTouchPosition.x;
 				Debug.Log("YDifference: "+yDifference+" xDifference: "+xDifference);
-				angle = Mathf.Atan2((yDifference),(xDifference))*Mathf.Rad2Deg;
-				radians = Mathf.Atan2((yDifference),(xDifference));
-				if(angle<0){
-					angle=0;
-				}else if(angle>180){
-					angle=180;
+				radians = Mathf.Atan2(yDifference,xDifference);
+				angle = radians*Mathf.Rad2Deg;
+				//set xPos to the new x position of the player based on angle
+				//set yPos to the new y position of the player based on angle
+
+				Debug.Log("counter"+counter);
+				Debug.Log("Xpos"+xPos+" Ypos"+yPos);
+				if(counter>0){
+					xPos+=(Mathf.Cos(radians)*(playerHeight/2));
+					yPos+=(Mathf.Sin(radians)*(playerHeight/2));
+				}else{
+					yPos+=(playerHeight/2);
 				}
+				o =	(GameObject)Instantiate(gb, new Vector2(xPos,yPos), Quaternion.identity);
+				/*s
 				if(counter==0){
 					o =	(GameObject)Instantiate(gb, new Vector2(gameObject.transform.position.x,gameObject.transform.position.y), Quaternion.identity);
 					xPos=gameObject.transform.position.x;
@@ -90,7 +102,7 @@ public class SwipeDetector : MonoBehaviour
 					 xPos=Mathf.Cos(radians)*(playerHeight/2)-o.transform.position.x;
 					 yPos=Mathf.Sin(radians)*(playerHeight/2)+o.transform.position.y;
 					 o=new GameObject();
-				}
+				}*/
 				o.transform.rotation = Quaternion.Euler(Vector3.forward * (angle-90));
 
         }
