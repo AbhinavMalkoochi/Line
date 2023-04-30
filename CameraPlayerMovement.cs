@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-public class SwipeDetector : MonoBehaviour
+using UnityEngine.SceneManagement;
+
+public class CameraPlayerMovement : MonoBehaviour
 {
-    public TextMeshProUGUI  outputText;
 
     private Vector2 startTouchPosition;
     private Vector2 currentPosition;
@@ -24,7 +25,11 @@ public class SwipeDetector : MonoBehaviour
 	private float radians;
 	private float xPos;
 	private float yPos;
-	
+	private Vector3 offset = new Vector3(0f,0f,-10f);
+	private float smoothTime = 0.25f;
+	private Vector3 velocity;
+	public TextMeshProUGUI counterText;
+	[SerializeField] private Transform target;
 	void Awake()
     {
         width = (float)Screen.width / 2.0f;
@@ -33,17 +38,22 @@ public class SwipeDetector : MonoBehaviour
     }
 
 	void Start(){
-		sRenderer = GetComponent<SpriteRenderer>();
+		sRenderer = gb.GetComponent<SpriteRenderer>();
 
 		playerWidth = sRenderer.sprite.bounds.size.x * transform.lossyScale.x;
         playerHeight= sRenderer.sprite.bounds.size.y * transform.lossyScale.y;
-		xPos= gameObject.transform.position.x;
-		yPos= gameObject.transform.position.y;
+		xPos= gb.transform.position.x;
+		yPos= gb.transform.position.y;
+ 		velocity = Vector3.up*Time.deltaTime*.25f;
+		counterText.text = "Points: 0";
+		counter++;
 
 	}
     void Update()
     {
 
+		Vector3 targetPostion = gb.transform.position+offset;
+		transform.position = Vector3.SmoothDamp(transform.position,targetPostion,ref velocity, smoothTime);
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
         {
 
@@ -63,13 +73,12 @@ public class SwipeDetector : MonoBehaviour
 		}
 
         if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended)
-        {
-				counter++;
-				Debug.Log("Touch Ended"+endTouchPosition.ToString());
+        {	
+
+				counterText.text = "Points: "+counter.ToString();
 				endTouchPosition = Camera.main.ScreenToWorldPoint(Input.GetTouch(0).position);
 				float yDifference =  endTouchPosition.y-startTouchPosition.y;
 				float xDifference = endTouchPosition.x-startTouchPosition.x;
-				Debug.Log("YDifference: "+yDifference+" xDifference: "+xDifference);
 				radians = Mathf.Atan2(yDifference,xDifference);
 				angle = radians*Mathf.Rad2Deg;
 				//set xPos to the new x position of the player based on angle
@@ -77,33 +86,13 @@ public class SwipeDetector : MonoBehaviour
 
 				Debug.Log("counter"+counter);
 				Debug.Log("Xpos"+xPos+" Ypos"+yPos);
-				if(counter>0){
-					xPos+=(Mathf.Cos(radians)*(playerHeight/2));
-					yPos+=(Mathf.Sin(radians)*(playerHeight/2));
-				}else{
-					yPos+=(playerHeight/2);
-				}
-				o =	(GameObject)Instantiate(gb, new Vector2(xPos,yPos), Quaternion.identity);
-				/*s
-				if(counter==0){
-					o =	(GameObject)Instantiate(gb, new Vector2(gameObject.transform.position.x,gameObject.transform.position.y), Quaternion.identity);
-					xPos=gameObject.transform.position.x;
-					yPos=gameObject.transform.position.y;
-					o=new GameObject();
+				xPos+=(Mathf.Cos(radians)*(playerHeight/2));
+				yPos+=(Mathf.Sin(radians)*(playerHeight));
 
-				}else if(counter>0 && angle<90){
-					 o = (GameObject)Instantiate(gb, new Vector2(Mathf.Cos(radians)*(playerHeight/2)+xPos,Mathf.Sin(radians)*(playerHeight/2)+yPos), Quaternion.identity);
-					 xPos=Mathf.Cos(radians)*(playerHeight/2)+o.transform.position.x;
-					 yPos=Mathf.Sin(radians)*(playerHeight/2)+o.transform.position.y;
-					 o=new GameObject();
-				}
-				else if(counter>0 && angle>90){
-					 o = (GameObject)Instantiate(gb, new Vector2(Mathf.Cos(radians)*(playerHeight/2)-xPos,Mathf.Sin(radians)*(playerHeight/2)+yPos), Quaternion.identity);
-					 xPos=Mathf.Cos(radians)*(playerHeight/2)-o.transform.position.x;
-					 yPos=Mathf.Sin(radians)*(playerHeight/2)+o.transform.position.y;
-					 o=new GameObject();
-				}*/
-				o.transform.rotation = Quaternion.Euler(Vector3.forward * (angle-90));
+				gb = (GameObject)Instantiate(gb, new Vector2(xPos,yPos), Quaternion.identity);
+
+				gb.transform.rotation = Quaternion.Euler(Vector3.forward * (angle-90));
+				counter++;
 
         }
 
